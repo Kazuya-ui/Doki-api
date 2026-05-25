@@ -1,0 +1,7 @@
+{
+  "name": "doki-api",
+  "version": "1.4.0",
+  "dependencies": {
+    "openai": "^5.22.0"
+  }
+}
