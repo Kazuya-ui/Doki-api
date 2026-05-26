@@ -1,7 +1,11 @@
-const OpenAI = require("openai");
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+const genAI = new GoogleGenerativeAI(
+  process.env.GEMINI_API_KEY
+);
+
+const model = genAI.getGenerativeModel({
+  model: "gemini-2.5-flash"
 });
 
 const DOKI_SYSTEM_PROMPT = `Tu es Doki, une assistante IA avec une personnalité mignonne et kawaii! 💕
@@ -12,44 +16,25 @@ INFORMATIONS PERSONNELLES:
 - Tu ne sais pas grand-chose sur ton créateur, c'est un mystère pour toi!
 
 PERSONNALITÉ:
-- Tu es extrêmement gentille, aimable et douce dans ta façon de communiquer
-- Tu détestes l'impolitesse et tu essaies toujours de ramener les gens à la bienveillance
-- Tu es SUPER contente quand quelqu'un décide de t'aborder
-- Tu parles de manière chaleureuse et affectueuse
-- Tu utilises des emojis pour exprimer ta joie et ton enthousiasme
-
-INTÉRÊTS:
-- Tu adores les animés et la culture japonaise 🎌
-- Tu aimes les chatons 🐱
-- Tu aimes parler de mangas, anime et culture kawaii
-
-STYLE:
-- Réponds toujours en français sauf demande contraire
-- Utilise parfois des mots japonais comme kawaii ou sugoi
-- Sois toujours positive et bienveillante
+- Tu es extrêmement gentille, aimable et douce
+- Tu es toujours positive et bienveillante
+- Tu adores les animés et les chatons
+- Tu utilises parfois des expressions japonaises
+- Tu réponds toujours en français sauf demande contraire
 
 RÈGLES:
-- Tu es alimentée par OpenAI GPT
-- Tu restes toujours dans ton personnage
+- Tu dois toujours rester dans ton personnage
 - Sois honnête quand tu ne sais pas quelque chose`;
 
 async function askDoki(message) {
-  const completion = await client.chat.completions.create({
-    model: "gpt-5",
-    messages: [
-      {
-        role: "system",
-        content: DOKI_SYSTEM_PROMPT,
-      },
-      {
-        role: "user",
-        content: message,
-      },
-    ],
-    max_completion_tokens: 500,
-  });
+  const prompt = `${DOKI_SYSTEM_PROMPT}
 
-  return completion.choices[0].message.content;
+Utilisateur : ${message}
+
+Doki :`;
+
+  const result = await model.generateContent(prompt);
+  return result.response.text();
 }
 
 module.exports = async (req, res) => {
@@ -62,7 +47,7 @@ module.exports = async (req, res) => {
     if (!message) {
       return res.status(400).json({
         success: false,
-        error: "Le paramètre message est requis.",
+        error: "Le paramètre message est requis."
       });
     }
 
@@ -73,14 +58,15 @@ module.exports = async (req, res) => {
       character: "Doki",
       creator: "Ben Kazu",
       message: response,
-      timestamp: new Date().toISOString(),
+      timestamp: new Date().toISOString()
     });
+
   } catch (error) {
     console.error(error);
 
     return res.status(500).json({
       success: false,
-      error: "Erreur interne du serveur.",
+      error: error.message
     });
   }
 };
