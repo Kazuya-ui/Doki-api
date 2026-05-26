@@ -1,7 +1,7 @@
 {
   "name": "doki-api",
-  "version": "1.4.0",
+  "version": "1.0.0",
   "dependencies": {
-    "openai": "^5.22.0"
+    "@google/generative-ai": "^0.24.1"
   }
 }
